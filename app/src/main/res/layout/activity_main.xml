@@ -120,15 +120,15 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/play"
+        android:textColor="@color/secondaryOn"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:textColor="@color/secondaryOn"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.22"
+        app:layout_constraintHorizontal_bias="0.18"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.9"/>
+        app:layout_constraintVertical_bias="0.901" />
 
     <Button
         android:id="@+id/btnStopPlay"
