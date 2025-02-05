@@ -1,13 +1,14 @@
 package com.denicks21.recorder
 
 import android.Manifest.permission
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
+import android.view.MotionEvent
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -25,7 +26,10 @@ class MainActivity : AppCompatActivity() {
     private var mRecorder: MediaRecorder? = null
     private var mPlayer: MediaPlayer? = null
     var mFileName: File? = null
+    var escalaButton: Float = 0.8f
 
+
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -40,16 +44,64 @@ class MainActivity : AppCompatActivity() {
             startRecording()
         }
 
+        startTV.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    v.animate().scaleX(escalaButton).scaleY(escalaButton).setDuration(100).start()
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
+                }
+            }
+            false
+        }
+
         stopTV.setOnClickListener {
-            pauseRecording()
+            stopRecording()
+        }
+
+        stopTV.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    v.animate().scaleX(escalaButton).scaleY(escalaButton).setDuration(100).start()
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
+                }
+            }
+            false
         }
 
         playTV.setOnClickListener {
             playAudio()
         }
 
+        playTV.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    v.animate().scaleX(escalaButton).scaleY(escalaButton).setDuration(100).start()
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
+                }
+            }
+            false
+        }
+
         stopplayTV.setOnClickListener {
-            pausePlaying()
+            stopAudio()
+        }
+
+        stopplayTV.setOnTouchListener { v, event ->
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    v.animate().scaleX(escalaButton).scaleY(escalaButton).setDuration(100).start()
+                }
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    v.animate().scaleX(1f).scaleY(1f).setDuration(100).start()
+                }
+            }
+            false
         }
     }
 
@@ -97,6 +149,76 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun stopRecording() {
+
+        // Stop recording
+        if (mFileName == null || mRecorder == null) {
+
+            // Message
+            Toast.makeText(getApplicationContext(), "Registration not started", Toast.LENGTH_LONG).show()
+
+        } else {
+
+            try {
+                mRecorder!!.stop()
+
+                // Message to confirm save file
+                val savedUri = Uri.fromFile(mFileName)
+                val msg = "File saved: " + savedUri!!.lastPathSegment
+                Toast.makeText(applicationContext, msg, Toast.LENGTH_LONG).show()
+
+                // Release the class mRecorder
+                mRecorder!!.release()
+                mRecorder = null
+                statusTV.text = "Recording saved to a file"
+
+            } catch (e: IllegalStateException) {
+                Toast.makeText(applicationContext, "Error saving the recording", Toast.LENGTH_LONG).show()
+            }
+
+        }
+    }
+
+    fun playAudio() {
+        if (mFileName != null) {
+            if (mPlayer == null) {
+                // Inicializar y preparar el MediaPlayer si es null
+                mPlayer = MediaPlayer()
+
+                mPlayer!!.setDataSource(mFileName.toString())
+
+                // Fetch the source of the mPlayer
+                mPlayer!!.prepare()
+            }
+
+            if (mPlayer!!.isPlaying) {
+                // Pausar la reproducción si está reproduciendo
+                mPlayer!!.pause()
+                statusTV.text = "Playback paused"
+            } else {
+                // Reanudar la reproducción si está en pausa
+                mPlayer!!.start()
+                statusTV.text = "Listening recording playback"
+            }
+
+        } else {
+            Toast.makeText(applicationContext, "Recording not found", Toast.LENGTH_LONG).show()
+        }
+    }
+
+
+    fun stopAudio() {
+
+        if (mPlayer != null) {
+            mPlayer!!.stop()
+            mPlayer!!.release()
+            mPlayer = null
+            statusTV.text = "Playback stopped"
+        }
+    }
+
+
+
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<String>,
@@ -137,54 +259,6 @@ class MainActivity : AppCompatActivity() {
         ActivityCompat.requestPermissions(this,
             arrayOf(permission.RECORD_AUDIO, permission.WRITE_EXTERNAL_STORAGE),
             REQUEST_AUDIO_PERMISSION_CODE)
-    }
-
-    fun playAudio() {
-
-        // Use the MediaPlayer class to listen to recorded audio files
-        mPlayer = MediaPlayer()
-        try {
-            // Preleva la fonte del file audio
-            mPlayer!!.setDataSource(mFileName.toString())
-
-            // Fetch the source of the mPlayer
-            mPlayer!!.prepare()
-
-            // Start the mPlayer
-            mPlayer!!.start()
-            statusTV.text = "Listening recording"
-        } catch (e: IOException) {
-            Log.e("TAG", "prepare() failed")
-        }
-    }
-
-    fun pauseRecording() {
-
-        // Stop recording
-        if (mFileName == null) {
-
-            // Message
-            Toast.makeText(getApplicationContext(), "Registration not started", Toast.LENGTH_LONG).show()
-
-        } else {
-            mRecorder!!.stop()
-
-            // Message to confirm save file
-            val savedUri = Uri.fromFile(mFileName)
-            val msg = "File saved: " + savedUri!!.lastPathSegment
-            Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show()
-
-            // Release the class mRecorder
-            mRecorder!!.release()
-            mRecorder = null
-            statusTV.text = "Recording interrupted"
-        }
-    }
-
-    fun pausePlaying() {
-
-        // Stop playing the audio file
-        statusTV.text = "Recording stopped"
     }
 
     companion object {
